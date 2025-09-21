@@ -14,7 +14,7 @@ void HttpConnection::Start()
                     return;
                 }
 
-                //´¦Àí¶Áµ½µÄÊı¾İ
+                //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
                 boost::ignore_unused(bytes_transferred);
                 self->HandleReq();
                 self->CheckDeadline();
@@ -26,14 +26,30 @@ void HttpConnection::Start()
     );
 }
 void HttpConnection::HandleReq() {
-    //ÉèÖÃ°æ±¾
+    //è®¾ç½®ç‰ˆæœ¬
     _response.version(_request.version());
-    //ÉèÖÃÎª¶ÌÁ´½Ó
+    //è®¾ç½®ä¸ºä¸ä¿æŒè¿æ¥
     _response.keep_alive(false);
 
     if (_request.method() == http::verb::get) {
         PreParseGetParam();
         bool success = LogicSystem::GetInstance()->HandleGet(_get_url, shared_from_this());
+        if (!success) {
+            _response.result(http::status::not_found);
+            _response.set(http::field::content_type, "text/plain");
+            beast::ostream(_response.body()) << "url not found\r\n";
+            WriteResponse();
+            return;
+        }
+
+        _response.result(http::status::ok);
+        _response.set(http::field::server, "GateServer");
+        WriteResponse();
+        return;
+    }
+    if (_request.method() == http::verb::post) {
+        PreParseGetParam(); // å¢åŠ è¿™è¡Œï¼Œè§£æURLè·¯å¾„
+        bool success = LogicSystem::GetInstance()->HandlePost(_get_url, shared_from_this()); // ä½¿ç”¨è§£æåçš„URL
         if (!success) {
             _response.result(http::status::not_found);
             _response.set(http::field::content_type, "text/plain");
@@ -68,18 +84,18 @@ std::string HttpConnection::UrlEncode(const std::string& str)
     size_t length = str.length();
     for (size_t i = 0; i < length; i++)
     {
-        //ÅĞ¶ÏÊÇ·ñ½öÓĞÊı×ÖºÍ×ÖÄ¸¹¹³É
+        //ï¿½Ğ¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öºï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½
         if (isalnum((unsigned char)str[i]) ||
             (str[i] == '-') ||
             (str[i] == '_') ||
             (str[i] == '.') ||
             (str[i] == '~'))
             strTemp += str[i];
-        else if (str[i] == ' ') //Îª¿Õ×Ö·û
+        else if (str[i] == ' ') //Îªï¿½ï¿½ï¿½Ö·ï¿½
             strTemp += "+";
         else
         {
-            //ÆäËû×Ö·ûĞèÒªÌáÇ°¼Ó%²¢ÇÒ¸ßËÄÎ»ºÍµÍËÄÎ»·Ö±ğ×ªÎª16½øÖÆ
+            //ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½Òªï¿½ï¿½Ç°ï¿½ï¿½%ï¿½ï¿½ï¿½Ò¸ï¿½ï¿½ï¿½Î»ï¿½Íµï¿½ï¿½ï¿½Î»ï¿½Ö±ï¿½×ªÎª16ï¿½ï¿½ï¿½ï¿½
             strTemp += '%';
             strTemp += ToHex((unsigned char)str[i] >> 4);
             strTemp += ToHex((unsigned char)str[i] & 0x0F);
@@ -93,9 +109,9 @@ std::string HttpConnection::UrlDecode(const std::string& str)
     size_t length = str.length();
     for (size_t i = 0; i < length; i++)
     {
-        //»¹Ô­+Îª¿Õ
+        //ï¿½ï¿½Ô­+Îªï¿½ï¿½
         if (str[i] == '+') strTemp += ' ';
-        //Óöµ½%½«ºóÃæµÄÁ½¸ö×Ö·û´Ó16½øÖÆ×ªÎªcharÔÙÆ´½Ó
+        //ï¿½ï¿½ï¿½ï¿½%ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½16ï¿½ï¿½ï¿½ï¿½×ªÎªcharï¿½ï¿½Æ´ï¿½ï¿½
         else if (str[i] == '%')
         {
             assert(i + 2 < length);
@@ -108,9 +124,9 @@ std::string HttpConnection::UrlDecode(const std::string& str)
     return strTemp;
 }
 void HttpConnection::PreParseGetParam() {
-    // ÌáÈ¡ URI  
+    // ï¿½ï¿½È¡ URI  
     auto uri = _request.target();
-    // ²éÕÒ²éÑ¯×Ö·û´®µÄ¿ªÊ¼Î»ÖÃ£¨¼´ '?' µÄÎ»ÖÃ£©  
+    // ï¿½ï¿½ï¿½Ò²ï¿½Ñ¯ï¿½Ö·ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½Ê¼Î»ï¿½Ã£ï¿½ï¿½ï¿½ '?' ï¿½ï¿½Î»ï¿½Ã£ï¿½  
     auto query_pos = uri.find('?');
     if (query_pos == std::string::npos) {
         _get_url = uri;
@@ -126,13 +142,13 @@ void HttpConnection::PreParseGetParam() {
         auto pair = query_string.substr(0, pos);
         size_t eq_pos = pair.find('=');
         if (eq_pos != std::string::npos) {
-            key = UrlDecode(pair.substr(0, eq_pos)); // ¼ÙÉèÓĞ url_decode º¯ÊıÀ´´¦ÀíURL½âÂë  
+            key = UrlDecode(pair.substr(0, eq_pos)); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ url_decode ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½URLï¿½ï¿½ï¿½ï¿½  
             value = UrlDecode(pair.substr(eq_pos + 1));
             _get_params[key] = value;
         }
         query_string.erase(0, pos + 1);
     }
-    // ´¦Àí×îºóÒ»¸ö²ÎÊı¶Ô£¨Èç¹ûÃ»ÓĞ & ·Ö¸ô·û£©  
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô£ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ & ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½  
     if (!query_string.empty()) {
         size_t eq_pos = query_string.find('=');
         if (eq_pos != std::string::npos) {
