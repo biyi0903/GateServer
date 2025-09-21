@@ -27,6 +27,18 @@
     <ClCompile Include="LogicSystem.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="message.grpc.pb.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="message.pb.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="VarifyGrpcClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigMgr.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CServer.h">
@@ -44,5 +56,23 @@
     <ClInclude Include="Singleton.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="message.grpc.pb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="message.pb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="VarifyGrpcClient.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigMgr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include="message.proto" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>
